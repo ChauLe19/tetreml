@@ -5,6 +5,26 @@
 		<title>Tetreml – Singleplayer</title>
 		<link rel="manifest" href="manifest.json">
 		<link rel="stylesheet" href="Font/font.css">
+		<!-- shim -->
+	<script src="inc/shim/Base64.js" type="text/javascript"></script>
+	<script src="inc/shim/Base64binary.js" type="text/javascript"></script>
+	<!-- <script src="inc/shim/WebAudioAPI.js" type="text/javascript"></script> -->
+	<!-- <script src="inc/shim/WebMIDIAPI.js" type="text/javascript"></script> -->
+	<!-- jasmid package -->
+	<script src="inc/jasmid/stream.js"></script>
+	<script src="inc/jasmid/midifile.js"></script>
+	<script src="inc/jasmid/replayer.js"></script>
+	<!-- midi.js package -->
+	<script src="js/midi/audioDetect.js" type="text/javascript"></script>
+	<script src="js/midi/gm.js" type="text/javascript"></script>
+	<script src="js/midi/loader.js" type="text/javascript"></script>
+	<script src="js/midi/plugin.webaudio.js" type="text/javascript"></script>
+	<script src="js/midi/plugin.webmidi.js" type="text/javascript"></script>
+	<script src="js/midi/player.js" type="text/javascript"></script>
+	<!-- <script src="js/midi/synesthesia.js" type="text/javascript"></script> -->
+	<!-- utils -->
+	<script src="js/util/dom_request_xhr.js" type="text/javascript"></script>
+	<script src="js/util/dom_request_script.js" type="text/javascript"></script>
 	</head>
 	<body style="display: flex; flex-direction: column; margin: 0px; height: -webkit-fill-available; overflow: hidden;">
 		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;">
@@ -30,5 +50,27 @@
 		<script src="ProgressiveInstaller.js"></script>
 		<script src="GUIManager.js"></script>
 		<script src="Tetreml.js" defer></script>
+		<input id="mid_input" type="file" id="avatar" name="avatar" accept=".mid">
 	</body>
+	<script>
+		const defaultMid = "Tetris_Theme.mid"
+		let inputMid = ""; 
+		const inputElement = document.getElementById("mid_input");
+		inputElement.addEventListener("change", handleFiles, false);
+	
+		function handleFiles(event) {
+			let midFile = event.target.files[0];
+			var reader = new FileReader();
+			// Closure to capture the file information.
+			reader.onload = (function (e) {
+				var binaryData = e.target.result;
+				//Converting Binary Data to base 64
+				var base64String = window.btoa(binaryData);
+				//showing file converted to base64
+				inputMid = base64String
+			});
+			reader.readAsBinaryString(midFile);
+		};
+		
+	</script>
 </html>

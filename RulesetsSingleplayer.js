@@ -2556,3 +2556,157 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 		if (this.oldState == GameState.over && this.state != GameState.over) currentSong.play();
 	}
 }
+
+
+class GameScreenGuidelineMusic extends GameScreenGuidelineBase {
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
+		this.singleSaveableFields.push("actionTime");
+		// this.musicPlayed = false
+		MIDI.Player.endTime = 1 //prevent gameover condition before starting
+	}
+
+	init() {
+		super.init();
+		// currentSong = new Music("40Line_opening", new Music("40Line_loop"));
+		if (!this.isReplay) {
+			this.highScore = localStorage.tetris40LineHighScore == undefined ? 0 : parseInt(localStorage.tetris40LineHighScore);
+			this.shortestTime = localStorage.tetris40LineShortestTime == undefined ? -1 : parseInt(localStorage.tetris40LineShortestTime);
+		}
+		this.actionTime = 0;
+	}
+
+	start() {
+		super.start();
+		let loadMid = inputMid ? "data:audio/midi;base64," + inputMid : defaultMid;
+		MIDI.Player.loadFile(loadMid
+			, MIDI.Player.start);
+		MIDI.Player.addListener(function (data) {
+			var message = data.message; // 128 is noteOff, 144 is noteOn
+			// then do whatever you want with the information!
+			if (message == 144) {
+				buttonStatus.hardDrop = true
+			}
+			else {
+				buttonStatus.hardDrop = false
+
+			}
+		});
+		buttonStatus.hardDrop = false
+
+	}
+
+
+	musicDone() {
+		this.gameOverMessage = "You finished the song";
+		super.gameOver();
+		// MIDI.Player.stop();
+		if (!this.isSeeking) sfx.gameOver.play();
+		MIDI.Player.currentTime = 0 //prevent gameover condition before starting
+	}
+
+	processGameLogic(timePassed) {
+		if (this.state == GameState.playing)
+			if (this.isReplay) {
+				if (!this.isClearing) this.actionTime += timePassed;
+			} else this.actionTime -= Math.min(0, this.clearTime - timePassed);
+		super.processGameLogic(timePassed);
+	}
+
+	renderBehind(timePassed) {
+		if (Math.ceil(MIDI.Player.currentTime) >= Math.floor(MIDI.Player.endTime)) {
+			this.musicDone()
+		}
+		super.renderBehind(timePassed);
+
+		ctx.fillStyle = "#FFF";
+		ctx.font = "12px Tetreml";
+		ctx.textAlign = "left";
+		ctx.fillText("Time", 485, 30);
+		ctx.fillText("Lines: " + this.lines, 485, 85);
+		ctx.fillText("Score", 485, 126);
+		if (!this.isReplay) {
+			if (this.shortestTime != -1) ctx.fillText("Shortest time", 485, 57);
+			ctx.fillText("High score", 485, 152);
+			ctx.fillText("Tetrimino manipulations", 20, 335);
+		}
+
+		ctx.textAlign = "right";
+		ctx.fillText("40", 632, 85);
+		ctx.fillText("" + this.score, 632, 126);
+		ctx.fillRect(485, 89, Math.min(147, 3.675 * this.lines), 10);
+
+		if (!this.isReplay) {
+			ctx.fillText("" + this.highScore, 632, 152);
+			if (this.shortestTime != -1) {
+				ctx.fillText(formatDurationWithMilliseconds(this.shortestTime / 1000), 632, 57);
+				ctx.fillRect(485, 34, Math.min(147, 147 * this.actionTime / this.shortestTime), 10);
+			}
+			ctx.fillRect(485, 130, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
+			ctx.fillText("" + this.keypresses, 208, 335);
+		}
+
+		ctx.font = "20px Tetreml";
+		ctx.fillText(this.state == GameState.over ? formatDurationWithMilliseconds(this.actionTime / 1000) : formatDuration(Math.floor(this.actionTime / 1000)), 632, 30);
+	}
+
+	renderInFront(timePassed) {
+		super.renderInFront(timePassed);
+		switch (this.state) {
+			case GameState.playing:
+				break;
+			case GameState.paused:
+				break;
+			case GameState.over:
+				ctx.font = "12px Tetreml";
+				ctx.textAlign = "center";
+				ctx.fillText(this.gameOverMessage, 320, 60, 150);
+				break;
+		}
+	}
+
+	pause(playSound = true) {
+		super.pause(playSound);
+		// stopCurrentMusic();
+		MIDI.Player.pause();
+	}
+
+	resume() {
+		super.resume();
+		// currentSong.resume();
+		MIDI.Player.resume();
+	}
+
+	gameOver() {
+		super.gameOver();
+		if (!this.isReplay && this.score > this.highScore) localStorage.musicHighScore = this.score;
+		this.gameOverMessage = "The stack got too high.";
+		MIDI.Player.stop();
+		// stopCurrentMusic();
+		if (!this.isSeeking) sfx.gameOver.play();
+	}
+
+	quit() {
+		// stopCurrentMusic();
+		MIDI.Player.stop();
+		super.quit();
+	}
+
+	getModeName() {
+		return "Music Mode";
+	}
+
+	getModeNameForDisplay() {
+		return "Music Mode";
+	}
+
+	readStateData(state) {
+		this.oldState = this.state;
+		super.readStateData(state);
+	}
+
+	finalizeSeek() {
+		super.finalizeSeek();
+		if (this.oldState == GameState.over && this.state != GameState.over) currentSong.play();
+	}
+}

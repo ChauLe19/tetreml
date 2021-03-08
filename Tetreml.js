@@ -115,6 +115,7 @@ loadControls();
 document.addEventListener("keydown", (key) => {
 	let code = key.code;
 	if (!(code in keyMapping)) return;
+	if(currentGui instanceof GameScreenGuidelineMusic && keyMapping[code] =="hardDrop") return;
 	buttonStatus[keyMapping[code]] = true;
 });
 
@@ -131,8 +132,8 @@ const zeroToNine = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // For generating handicapped
 class OptionsScreen {
 	constructor(parent) {
 		this.parent = parent;
-		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Grand master", "Shirase", "Endless (Tengen-like scoring)", "Endless (NES-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)", "Relax"];
-		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTGM, GameScreenShirase, GameScreenTengen, GameScreenNES, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute, GameScreenRelax];
+		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Grand master", "Shirase", "Endless (Tengen-like scoring)", "Endless (NES-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)", "Relax", "Music mode"];
+		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTGM, GameScreenShirase, GameScreenTengen, GameScreenNES, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute, GameScreenRelax, GameScreenGuidelineMusic];
 		this.optionEnablingMap = [
 			[true, false, true, false, true, true, true, true, true],
 			[true, false, true, false, true, true, true, true, true],
@@ -144,7 +145,8 @@ class OptionsScreen {
 			[true, true, true, true, true, true, true, true, true],
 			[true, false, false, false, true, true, true, true, true],
 			[true, false, false, false, true, true, true, true, true],
-			[true, false, true, false, true, true, true, true, true]
+			[true, false, true, false, true, true, true, true, true],
+			[true, false, false, false, true, true, true, true, true] //Music
 		];
 		this.speedCurveNames = ["tetris.com", "Tengen", "NES (NTSC)", "NES (PAL)"];
 		this.speedCurves = [
@@ -261,17 +263,17 @@ class OptionsScreen {
 	}
 
 	setMode(mode) {
-		this.mode = Math.max(0, Math.min(10, mode));
+		this.mode = Math.max(0, Math.min(11, mode));
 		this.setStartingLevel(this.startingLevel);
 	}
 
 	handleModeChange(keycode) {
 		switch (keycode) {
 			case "ArrowLeft":
-				this.setMode((this.mode + 10) % 11);
+				this.setMode((this.mode + 11) % 12);
 				break;
 			case "ArrowRight":
-				this.setMode((this.mode + 1) % 11);
+				this.setMode((this.mode + 1) % 12);
 				break;
 		}
 	}
